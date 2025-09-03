@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EMQ Easy SQL
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Easy artist ID search and song queries
 // @author       Myuki
 // @match        https://kuery.erogemusicquiz.com/*
@@ -134,7 +134,7 @@ WITH artist_songs AS (
         CASE
             WHEN mel.duration = '00:00:00' THEN NULL
             WHEN mel.url LIKE 'https://emqselfhost/selfhoststorage/%' THEN
-                REPLACE(mel.url, 'https://emqselfhost/selfhoststorage/', 'https://erogemusicquiz.com/selfhoststorage/userup/')
+                REPLACE(mel.url, 'https://emqselfhost/selfhoststorage/', 'https://erogemusicquiz.com/selfhoststorage/')
             ELSE mel.url
         END AS song_url,
         mel.duration,

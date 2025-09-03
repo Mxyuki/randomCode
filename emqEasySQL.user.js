@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EMQ Easy SQL
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Easy artist ID search and song queries
 // @author       Myuki
 // @match        https://kuery.erogemusicquiz.com/*
@@ -114,17 +114,17 @@ LIMIT ${CONFIG.SEARCH_LIMIT};`.trim();
         executeQuery(query);
     }
 
-    function loadSongs() {
-        const artistId = document.getElementById('emq-artist-id').value.trim();
-        if (!artistId || isNaN(artistId)) {
-            showStatus('Please enter a valid artist ID.');
-            return;
-        }
+function loadSongs() {
+    const artistId = document.getElementById('emq-artist-id').value.trim();
+    if (!artistId || isNaN(artistId)) {
+        showStatus('Please enter a valid artist ID.');
+        return;
+    }
 
-        showStatus(`Loading songs for Artist ID: ${artistId}...`);
-        isSearchingArtist = false;
+    showStatus(`Loading songs for Artist ID: ${artistId}...`);
+    isSearchingArtist = false;
 
-        const query = `
+    const query = `
 WITH artist_songs AS (
     SELECT DISTINCT
         am.music_id,
@@ -143,6 +143,15 @@ WITH artist_songs AS (
         ROW_NUMBER() OVER (
             PARTITION BY COALESCE(mt.latin_title, mt.non_latin_title)
             ORDER BY
+                -- prioritize file extensions
+                CASE
+                    WHEN mel.url LIKE '%.webp' THEN 1
+                    WHEN mel.url LIKE '%.weba' THEN 2
+                    WHEN mel.url LIKE '%.mp3' THEN 3
+                    WHEN mel.url LIKE '%.ogg' THEN 4
+                    ELSE 5
+                END,
+                -- then prioritize hosts
                 CASE
                     WHEN mel.url LIKE 'https://files.catbox.moe/%' THEN 1
                     WHEN mel.url LIKE 'https://erogemusicquiz.com/selfhoststorage/%' THEN 2
@@ -170,8 +179,8 @@ FROM artist_songs
 WHERE rn = 1
 ORDER BY display_name;`.trim();
 
-        executeQuery(query);
-    }
+    executeQuery(query);
+}
 
     function executeQuery(query) {
         const textarea = document.querySelector('#sqledit textarea[name="sql"]');
